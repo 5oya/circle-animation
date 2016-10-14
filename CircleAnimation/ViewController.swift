@@ -13,6 +13,7 @@ final class ViewModel {
 }
 
 final class ViewController: UIViewController {
+    var maxFrame: CGRect?
     lazy var videoPreviewLayer: CALayer = {
         let videoPreviewLayer = CALayer()
         videoPreviewLayer.frame = self.view.frame
@@ -29,8 +30,9 @@ final class ViewController: UIViewController {
     }()
     lazy var circleLayer: CAShapeLayer = {
         let circleLayer = CAShapeLayer()
-        circleLayer.fillColor = UIColor(red: 144.0 / 255.0, green: 153.0 / 255.0, blue: 224.0 / 255.0, alpha: 0.1).CGColor
-        circleLayer.strokeColor = UIColor(red: 35.0 / 255.0, green: 190.0 / 255.0, blue: 214 / 255.9, alpha: 1.0).CGColor
+//        circleLayer.fillColor = UIColor(red: 144.0 / 255.0, green: 153.0 / 255.0, blue: 224.0 / 255.0, alpha: 0.1).CGColor
+        circleLayer.fillColor = UIColor.clearColor().CGColor
+        circleLayer.strokeColor = UIColor.purpleColor().CGColor
         return circleLayer
     }()
 
@@ -41,17 +43,55 @@ final class ViewController: UIViewController {
         view.layer.addSublayer(videoPreviewLayer)
         
         videoPreviewLayer.addSublayer(rectanglesLayer)
-        rectanglesLayer.addSublayer(circleLayer)
+//        rectanglesLayer.addSublayer(circleLayer)
         
-        let fromPath = UIBezierPath()
-        
-        let center = CGPoint(x: self.view.bounds.width / 4 + (meishiView.bounds.width / 2), y: self.view.bounds.height / 4 + (meishiView.bounds.height / 2))
+        let contentGradientLayer = CAGradientLayer()
         let radius = CGFloat(80)
+        let diameter = radius * 2.0
+        
+        var cardMinX = meishiView.frame.minX
+        var cardMinY = meishiView.frame.minY
+        var cardMaxX = meishiView.frame.maxX
+        var cardMaxY = meishiView.frame.maxY
+
+        var cardWidth = meishiView.bounds.width
+        var cardHeight = meishiView.bounds.height
+        
+        // 縦名刺か横名刺の情報をもっていればそれを使う
+        if cardHeight < diameter {
+            // 横名刺の場合
+            let plusFrame = radius - (cardHeight / 2)
+            cardMaxY = cardMaxY + plusFrame
+            cardMinY = cardMinY - plusFrame
+            cardHeight = cardHeight + (plusFrame * 2)
+        } else if cardWidth < diameter {
+            // 縦名刺の場合
+            let plusFrame = radius - (cardWidth / 2)
+            cardMaxX = cardMaxX + plusFrame
+            cardMinX = cardMinX - plusFrame
+            cardWidth = cardWidth + (plusFrame * 2)
+        }
+        
+    
+        maxFrame = CGRect(x: cardMinX, y: cardMinY, width: cardWidth + 2, height: cardHeight + 2)
+        guard let maxFrame = maxFrame else { return }
+        contentGradientLayer.frame = maxFrame
+        
+        let contentStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
+        let contentEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        contentGradientLayer.colors = [contentStartColor, contentEndColor]
+        contentGradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+        contentGradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        contentGradientLayer.mask = circleLayer
+        rectanglesLayer.addSublayer(contentGradientLayer)
+        
+        
+        let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
         let point0 = CGPoint(x: center.x, y: center.y - radius)
         let point1 = CGPoint(x: center.x + radius, y: center.y)
         let point2 = CGPoint(x: center.x, y: center.y + radius)
         let point3 = CGPoint(x: center.x - radius, y: center.y)
-        
+        let fromPath = UIBezierPath()
         fromPath.moveToPoint(point0)
         fromPath.addCurveToPoint(point1, controlPoint1: CGPointMake(point0.x + radius / 1.8, point0.y), controlPoint2: CGPointMake(point1.x, point1.y - radius / 1.8))
         fromPath.addCurveToPoint(point2, controlPoint1: CGPointMake(point1.x, point1.y + radius / 1.8), controlPoint2: CGPointMake(point2.x + radius / 1.8, point2.y))
@@ -59,33 +99,22 @@ final class ViewController: UIViewController {
         fromPath.addCurveToPoint(point0, controlPoint1: CGPointMake(point3.x, point3.y - radius / 1.8), controlPoint2: CGPointMake(point0.x - radius / 1.8, point0.y))
         fromPath.closePath()
         
-        
-        
-        // 楽に円を描く方法
-//        let center = CGPoint(x: self.view.bounds.width / 4 + (meishiView.bounds.width / 2), y: self.view.bounds.height / 4 + (meishiView.bounds.height / 2))
-//        let radius = CGFloat(50)
-//        let pi = CGFloat(M_PI)
-//        let start = CGFloat(0)
-//        let end = 2 * pi
-//        fromPath.addArcWithCenter(center, radius: radius, startAngle: start, endAngle: end, clockwise: true)
-        
-        
         circleLayer.path = fromPath.CGPath
     }
 
     @IBAction func startAnimation(sender: UIButton) {
         // path animation
         
-        
+        guard let maxFrame = maxFrame else { return }
+        let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
         // fromPathを生成
         let fromPath = UIBezierPath()
-        let center = CGPoint(x: self.view.bounds.width / 4 + (meishiView.bounds.width / 2), y: self.view.bounds.height / 4 + (meishiView.bounds.height / 2))
         let radius = CGFloat(80)
         let point0 = CGPoint(x: center.x, y: center.y - radius)
         let point1 = CGPoint(x: center.x + radius, y: center.y)
         let point2 = CGPoint(x: center.x, y: center.y + radius)
         let point3 = CGPoint(x: center.x - radius, y: center.y)
-        
+
         fromPath.moveToPoint(point0)
         fromPath.addLineToPoint(point0)
         fromPath.addCurveToPoint(point1, controlPoint1: CGPointMake(point0.x + radius / 1.8, point0.y), controlPoint2: CGPointMake(point1.x, point1.y - radius / 1.8))
@@ -98,7 +127,16 @@ final class ViewController: UIViewController {
         fromPath.closePath()
         
         
-        let origin = CGPoint(x: view.bounds.width / 4, y: view.bounds.height / 4)
+        // 縦名刺か横名刺の情報をもっていればそれを使う
+        // 横名刺の場合
+        let cardHeight = meishiView.bounds.height
+        let plusFrame = radius - (cardHeight / 2)
+        let origin = CGPoint(x: 0.0, y: plusFrame)
+        // 横名刺の場合
+//        let cardWidth = meishiView.bounds.width
+//        let plusFrame = radius - (cardWidth / 2)
+//        let origin = CGPoint(x: plusFrame, y: 0.0)
+        
         let magnification =  radius / 2.5
         
         // afterPathを生成
