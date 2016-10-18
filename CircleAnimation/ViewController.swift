@@ -59,7 +59,8 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.addSubview(meishiView)
+//        view.addSubview(meishiView)
+        
         view.layer.addSublayer(videoPreviewLayer)
         videoPreviewLayer.addSublayer(rectanglesLayer)
         rectanglesLayer.addSublayer(nameCardLayer)
@@ -136,7 +137,8 @@ final class ViewController: UIViewController {
                 self.borderLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
                 self.contentLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
             }
-            self.contentGradientLayer.addAnimation(self.clearContentColorAnimation(), forKey: "clearContentColorAnimation")
+            self.contentGradientLayer.addAnimation(self.contentGradientAnimation(), forKey: "clearContentColorAnimation")
+            self.nameCardLayer.addAnimation(self.scaleAnimation(), forKey: "scaleAnimation")
             CATransaction.commit()
         }
     }
@@ -220,7 +222,7 @@ final class ViewController: UIViewController {
         
         pathAnimation.fromValue = fromPath.CGPath
         pathAnimation.toValue = toPath.CGPath
-        pathAnimation.duration = 1.0
+        pathAnimation.duration = 0.8
         pathAnimation.fillMode = kCAFillModeForwards
         pathAnimation.removedOnCompletion = false
         
@@ -239,26 +241,7 @@ final class ViewController: UIViewController {
         let toColors = [toStartColor, toEndColor]
         colorsAnimation.fromValue = fromColors
         colorsAnimation.toValue = toColors
-        colorsAnimation.duration = 1.0
-        colorsAnimation.removedOnCompletion = false
-        colorsAnimation.fillMode = kCAFillModeForwards
-        
-        return colorsAnimation
-    }
-    
-    private func clearContentColorAnimation() -> CABasicAnimation {
-        let colorsProperty = "colors"
-        let colorsAnimation = CABasicAnimation(keyPath: colorsProperty)
-        
-        let fromStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
-        let fromEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
-        let toStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 0.0).CGColor
-        let toEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 0.0).CGColor
-        let fromColors = [fromStartColor, fromEndColor]
-        let toColors = [toStartColor, toEndColor]
-        colorsAnimation.fromValue = fromColors
-        colorsAnimation.toValue = toColors
-        colorsAnimation.duration = 1.0
+        colorsAnimation.duration = 0.8
         colorsAnimation.removedOnCompletion = false
         colorsAnimation.fillMode = kCAFillModeForwards
         
@@ -305,8 +288,8 @@ final class ViewController: UIViewController {
         // afterPathを生成
         let toPath = UIBezierPath()
         let toPoint0 = CGPoint(x: origin.x, y: origin.y)
-        let toPoint1 = CGPoint(x: origin.x + 200, y: origin.y)
-        let toPoint2 = CGPoint(x: origin.x + 200, y: origin.y + 120)
+        let toPoint1 = CGPoint(x: (origin.x + 200), y: origin.y)
+        let toPoint2 = CGPoint(x: (origin.x + 200), y: origin.y + 120)
         let toPoint3 = CGPoint(x: origin.x, y: origin.y + 120)
         
         toPath.moveToPoint(toPoint0)
@@ -326,11 +309,49 @@ final class ViewController: UIViewController {
         
         pathAnimation.fromValue = fromPath.CGPath
         pathAnimation.toValue = toPath.CGPath
-        pathAnimation.duration = 1.0
+        pathAnimation.duration = 0.8
         pathAnimation.fillMode = kCAFillModeForwards
         pathAnimation.removedOnCompletion = false
         
         return pathAnimation
     }
+    
+    private func scaleAnimation() -> CABasicAnimation {
+        let transform = "transform.scale"
+        let scaleAnimation = CABasicAnimation(keyPath: transform)
+        scaleAnimation.toValue = NSValue(CATransform3D: CATransform3DMakeScale(1.1, 1.1, 1.0))
+        scaleAnimation.duration = 0.8
+        scaleAnimation.fillMode = kCAFillModeForwards
+        scaleAnimation.removedOnCompletion = false
+        
+        return scaleAnimation
+    }
+    
+    private func clearContentColorAnimation() -> CABasicAnimation {
+        let colorsProperty = "colors"
+        let colorsAnimation = CABasicAnimation(keyPath: colorsProperty)
+        
+        let fromStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
+        let fromEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        let toStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 0.0).CGColor
+        let toEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 0.0).CGColor
+        let fromColors = [fromStartColor, fromEndColor]
+        let toColors = [toStartColor, toEndColor]
+        colorsAnimation.fromValue = fromColors
+        colorsAnimation.toValue = toColors
+        
+        return colorsAnimation
+    }
+    
+    private func contentGradientAnimation() -> CAAnimationGroup {
+        let contentGradientAnimation = CAAnimationGroup()
+        contentGradientAnimation.animations = [scaleAnimation(), clearContentColorAnimation()]
+        contentGradientAnimation.duration = 0.8
+        contentGradientAnimation.fillMode = kCAFillModeForwards
+        contentGradientAnimation.removedOnCompletion = false
+
+        return contentGradientAnimation
+    }
 }
 
+// 1.1倍後の座標を取得してそれのpathを変更すればいけそう！
