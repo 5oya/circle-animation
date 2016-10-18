@@ -48,6 +48,12 @@ final class ViewController: UIViewController {
         let borderGradientLayer = CAGradientLayer()
         return borderGradientLayer
     }()
+    lazy var nameCardLayer: CALayer = {
+        let nameCardLayer = CALayer()
+        nameCardLayer.contents = UIImage(named: "meisi.jpg")?.CGImage
+        nameCardLayer.frame = CGRect(x: self.view.bounds.width / 4, y: self.view.bounds.height / 4, width: 200, height: 120)
+        return nameCardLayer
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,8 +61,8 @@ final class ViewController: UIViewController {
         view.addSubview(meishiView)
         view.layer.addSublayer(videoPreviewLayer)
         videoPreviewLayer.addSublayer(rectanglesLayer)
+        rectanglesLayer.addSublayer(nameCardLayer)
 
-        
         let radius = CGFloat(80)
         let diameter = radius * 2.0
         var cardMinX = meishiView.frame.minX
@@ -121,7 +127,13 @@ final class ViewController: UIViewController {
     }
 
     @IBAction func startAnimation(sender: UIButton) {
-        playNameCardAnimation()
+        playNameCardAnimation {
+//            self.nameCardLayer.frame = self.meishiView.frame
+//            self.nameCardLayer.backgroundColor = UIColor.whiteColor().CGColor
+//            self.rectanglesLayer.addSublayer(self.nameCardLayer)
+//            self.rectanglesLayer.backgroundColor = UIColor.blackColor().CGColor
+//            self.rectanglesLayer.frame =
+        }
     }
     
     private func playNameCardAnimation(completion: (() -> Void)? = nil) {
