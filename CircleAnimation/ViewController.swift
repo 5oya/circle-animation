@@ -220,7 +220,7 @@ final class ViewController: UIViewController {
         
         pathAnimation.fromValue = fromPath.CGPath
         pathAnimation.toValue = toPath.CGPath
-        pathAnimation.duration = 2.0
+        pathAnimation.duration = 1.0
         pathAnimation.fillMode = kCAFillModeForwards
         pathAnimation.removedOnCompletion = false
         
@@ -239,7 +239,7 @@ final class ViewController: UIViewController {
         let toColors = [toStartColor, toEndColor]
         colorsAnimation.fromValue = fromColors
         colorsAnimation.toValue = toColors
-        colorsAnimation.duration = 2.0
+        colorsAnimation.duration = 1.0
         colorsAnimation.removedOnCompletion = false
         colorsAnimation.fillMode = kCAFillModeForwards
         
@@ -258,7 +258,7 @@ final class ViewController: UIViewController {
         let toColors = [toStartColor, toEndColor]
         colorsAnimation.fromValue = fromColors
         colorsAnimation.toValue = toColors
-        colorsAnimation.duration = 2.0
+        colorsAnimation.duration = 1.0
         colorsAnimation.removedOnCompletion = false
         colorsAnimation.fillMode = kCAFillModeForwards
         
@@ -267,12 +267,6 @@ final class ViewController: UIViewController {
     
     private func ellipseToQuadrangleAnimation() -> CABasicAnimation? {
         // path animation
-//        guard let maxFrame = maxFrame else { return nil }
-//        let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
-        
-        
-        
-        
         // 縦名刺か横名刺の情報をもっていればそれを使う
         // 横名刺の場合
         let cardHeight = meishiView.bounds.height
@@ -332,7 +326,7 @@ final class ViewController: UIViewController {
         
         pathAnimation.fromValue = fromPath.CGPath
         pathAnimation.toValue = toPath.CGPath
-        pathAnimation.duration = 2.0
+        pathAnimation.duration = 1.0
         pathAnimation.fillMode = kCAFillModeForwards
         pathAnimation.removedOnCompletion = false
         
