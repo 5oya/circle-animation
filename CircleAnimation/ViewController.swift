@@ -54,6 +54,7 @@ final class ViewController: UIViewController {
         nameCardLayer.frame = CGRect(x: self.view.bounds.width / 4, y: self.view.bounds.height / 4, width: 200, height: 120)
         return nameCardLayer
     }()
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -128,11 +129,15 @@ final class ViewController: UIViewController {
 
     @IBAction func startAnimation(sender: UIButton) {
         playNameCardAnimation {
-//            self.nameCardLayer.frame = self.meishiView.frame
-//            self.nameCardLayer.backgroundColor = UIColor.whiteColor().CGColor
-//            self.rectanglesLayer.addSublayer(self.nameCardLayer)
-//            self.rectanglesLayer.backgroundColor = UIColor.blackColor().CGColor
-//            self.rectanglesLayer.frame =
+            self.borderLayer.lineWidth = 0
+            CATransaction.begin()
+//            CATransaction.setCompletionBlock(completion)
+            if let ellipseToQuadrangleAnimation = self.ellipseToQuadrangleAnimation() {
+                self.borderLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
+                self.contentLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
+            }
+            self.contentGradientLayer.addAnimation(self.clearContentColorAnimation(), forKey: "clearContentColorAnimation")
+            CATransaction.commit()
         }
     }
     
@@ -239,6 +244,99 @@ final class ViewController: UIViewController {
         colorsAnimation.fillMode = kCAFillModeForwards
         
         return colorsAnimation
+    }
+    
+    private func clearContentColorAnimation() -> CABasicAnimation {
+        let colorsProperty = "colors"
+        let colorsAnimation = CABasicAnimation(keyPath: colorsProperty)
+        
+        let fromStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
+        let fromEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        let toStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 0.0).CGColor
+        let toEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 0.0).CGColor
+        let fromColors = [fromStartColor, fromEndColor]
+        let toColors = [toStartColor, toEndColor]
+        colorsAnimation.fromValue = fromColors
+        colorsAnimation.toValue = toColors
+        colorsAnimation.duration = 2.0
+        colorsAnimation.removedOnCompletion = false
+        colorsAnimation.fillMode = kCAFillModeForwards
+        
+        return colorsAnimation
+    }
+    
+    private func ellipseToQuadrangleAnimation() -> CABasicAnimation? {
+        // path animation
+//        guard let maxFrame = maxFrame else { return nil }
+//        let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
+        
+        
+        
+        
+        // 縦名刺か横名刺の情報をもっていればそれを使う
+        // 横名刺の場合
+        let cardHeight = meishiView.bounds.height
+        let radius = CGFloat(80)
+        let plusFrame = radius - (cardHeight / 2)
+        let origin = CGPoint(x: 0.0 + borderWidth, y: plusFrame + borderWidth)
+        // 横名刺の場合
+        //        let cardWidth = meishiView.bounds.width
+        //        let plusFrame = radius - (cardWidth / 2)
+        //        let origin = CGPoint(x: plusFrame, y: 0.0)
+        
+        let magnification =  radius / 2.5
+        
+        // fromPathを生成
+        let fromPath = UIBezierPath()
+        let fromPoint0 = CGPoint(x: origin.x + magnification, y: origin.y)
+        let fromPoint1 = CGPoint(x: (origin.x + 200) - magnification, y: origin.y)
+        let fromPoint2 = CGPoint(x: origin.x + 200, y: origin.y + magnification)
+        let fromPoint3 = CGPoint(x: origin.x + 200, y: (origin.y + 120) - magnification)
+        let fromPoint4 = CGPoint(x: (origin.x + 200) - magnification , y: origin.y + 120)
+        let fromPoint5 = CGPoint(x: origin.x + magnification, y: origin.y + 120)
+        let fromPoint6 = CGPoint(x: origin.x, y: (origin.y + 120) - magnification)
+        let fromPoint7 = CGPoint(x: origin.x, y: origin.y + magnification)
+        
+        fromPath.moveToPoint(fromPoint0)
+        fromPath.addLineToPoint(fromPoint1)
+        fromPath.addCurveToPoint(fromPoint2, controlPoint1: CGPointMake(fromPoint1.x + (magnification / 2), fromPoint1.y), controlPoint2: CGPointMake(fromPoint2.x, fromPoint2.y - (magnification / 2)))
+        fromPath.addLineToPoint(fromPoint3)
+        fromPath.addCurveToPoint(fromPoint4, controlPoint1: CGPointMake(fromPoint3.x, fromPoint3.y + (magnification / 2)), controlPoint2: CGPointMake(fromPoint4.x + (magnification / 2), fromPoint4.y))
+        fromPath.addLineToPoint(fromPoint5)
+        fromPath.addCurveToPoint(fromPoint6, controlPoint1: CGPointMake(fromPoint5.x - (magnification / 2), fromPoint5.y), controlPoint2: CGPointMake(fromPoint6.x, fromPoint6.y + (magnification / 2)))
+        fromPath.addLineToPoint(fromPoint7)
+        fromPath.addCurveToPoint(fromPoint0, controlPoint1: CGPointMake(fromPoint7.x, fromPoint7.y - (magnification / 2)), controlPoint2: CGPointMake(fromPoint0.x - (magnification / 2), fromPoint0.y))
+        fromPath.closePath()
+        
+        // afterPathを生成
+        let toPath = UIBezierPath()
+        let toPoint0 = CGPoint(x: origin.x, y: origin.y)
+        let toPoint1 = CGPoint(x: origin.x + 200, y: origin.y)
+        let toPoint2 = CGPoint(x: origin.x + 200, y: origin.y + 120)
+        let toPoint3 = CGPoint(x: origin.x, y: origin.y + 120)
+        
+        toPath.moveToPoint(toPoint0)
+        toPath.addLineToPoint(toPoint1)
+        toPath.addLineToPoint(toPoint1)
+        toPath.addLineToPoint(toPoint2)
+        toPath.addLineToPoint(toPoint2)
+        toPath.addLineToPoint(toPoint3)
+        toPath.addLineToPoint(toPoint3)
+        toPath.addLineToPoint(toPoint0)
+        toPath.addLineToPoint(toPoint0)
+        toPath.closePath()
+        
+        
+        let pathProperty = "path"
+        let pathAnimation = CABasicAnimation(keyPath: pathProperty)
+        
+        pathAnimation.fromValue = fromPath.CGPath
+        pathAnimation.toValue = toPath.CGPath
+        pathAnimation.duration = 2.0
+        pathAnimation.fillMode = kCAFillModeForwards
+        pathAnimation.removedOnCompletion = false
+        
+        return pathAnimation
     }
 }
 
