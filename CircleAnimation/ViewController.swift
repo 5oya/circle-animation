@@ -11,6 +11,7 @@ import UIKit
 final class ViewModel {
     
 }
+private let borderWidth = CGFloat(2.0)
 
 final class ViewController: UIViewController {
     var maxFrame: CGRect?
@@ -28,12 +29,24 @@ final class ViewController: UIViewController {
         let rectanglesLayer = CAShapeLayer()
         return rectanglesLayer
     }()
-    lazy var circleLayer: CAShapeLayer = {
-        let circleLayer = CAShapeLayer()
-//        circleLayer.fillColor = UIColor(red: 144.0 / 255.0, green: 153.0 / 255.0, blue: 224.0 / 255.0, alpha: 0.1).CGColor
-        circleLayer.fillColor = UIColor.clearColor().CGColor
-        circleLayer.strokeColor = UIColor.purpleColor().CGColor
-        return circleLayer
+    lazy var contentLayer: CAShapeLayer = {
+        let contentLayer = CAShapeLayer()
+        return contentLayer
+    }()
+    lazy var contentGradientLayer: CAGradientLayer = {
+        let contentGradientLayer = CAGradientLayer()
+        return contentGradientLayer
+    }()
+    lazy var borderLayer: CAShapeLayer = {
+        let borderLayer = CAShapeLayer()
+        borderLayer.fillColor = UIColor.clearColor().CGColor
+        borderLayer.strokeColor = UIColor.purpleColor().CGColor
+        borderLayer.lineWidth = borderWidth
+        return borderLayer
+    }()
+    lazy var borderGradientLayer: CAGradientLayer = {
+        let borderGradientLayer = CAGradientLayer()
+        return borderGradientLayer
     }()
 
     override func viewDidLoad() {
@@ -41,19 +54,15 @@ final class ViewController: UIViewController {
         
         view.addSubview(meishiView)
         view.layer.addSublayer(videoPreviewLayer)
-        
         videoPreviewLayer.addSublayer(rectanglesLayer)
-//        rectanglesLayer.addSublayer(circleLayer)
+
         
-        let contentGradientLayer = CAGradientLayer()
         let radius = CGFloat(80)
         let diameter = radius * 2.0
-        
         var cardMinX = meishiView.frame.minX
         var cardMinY = meishiView.frame.minY
         var cardMaxX = meishiView.frame.maxX
         var cardMaxY = meishiView.frame.maxY
-
         var cardWidth = meishiView.bounds.width
         var cardHeight = meishiView.bounds.height
         
@@ -72,20 +81,29 @@ final class ViewController: UIViewController {
             cardWidth = cardWidth + (plusFrame * 2)
         }
         
-    
-        maxFrame = CGRect(x: cardMinX, y: cardMinY, width: cardWidth + 2, height: cardHeight + 2)
+        maxFrame = CGRect(x: cardMinX, y: cardMinY, width: cardWidth, height: cardHeight).insetBy(dx: -borderWidth, dy: -borderWidth)
         guard let maxFrame = maxFrame else { return }
-        contentGradientLayer.frame = maxFrame
         
-        let contentStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
-        let contentEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        contentGradientLayer.frame = maxFrame
+        let contentStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 0.4).CGColor
+        let contentEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 0.4).CGColor
         contentGradientLayer.colors = [contentStartColor, contentEndColor]
         contentGradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
         contentGradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        contentGradientLayer.mask = circleLayer
+        contentGradientLayer.mask = contentLayer
         rectanglesLayer.addSublayer(contentGradientLayer)
         
+        borderGradientLayer.frame = maxFrame
+        let borderStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
+        let borderEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        borderGradientLayer.colors = [borderStartColor, borderEndColor]
+        borderGradientLayer.startPoint  = CGPoint(x: 0.0, y: 0.5)
+        borderGradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        borderGradientLayer.mask = borderLayer
+        rectanglesLayer.addSublayer(borderGradientLayer)
         
+        
+        // 初期のcircle(本番だと消す)
         let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
         let point0 = CGPoint(x: center.x, y: center.y - radius)
         let point1 = CGPoint(x: center.x + radius, y: center.y)
@@ -99,13 +117,31 @@ final class ViewController: UIViewController {
         fromPath.addCurveToPoint(point0, controlPoint1: CGPointMake(point3.x, point3.y - radius / 1.8), controlPoint2: CGPointMake(point0.x - radius / 1.8, point0.y))
         fromPath.closePath()
         
-        circleLayer.path = fromPath.CGPath
+        borderLayer.path = fromPath.CGPath
     }
 
     @IBAction func startAnimation(sender: UIButton) {
+        playNameCardAnimation()
+    }
+    
+    private func playNameCardAnimation(completion: (() -> Void)? = nil) {
+        CATransaction.begin()
+        if let completion = completion {
+            CATransaction.setCompletionBlock(completion)
+        }
+        
+        if let circleToEllipseAnimation = circleToEllipseAnimation() {
+            borderLayer.addAnimation(circleToEllipseAnimation, forKey: "circleToEllipseAnimation")
+            contentLayer.addAnimation(circleToEllipseAnimation, forKey: "circleToEllipseAnimation")
+        }
+        contentGradientLayer.addAnimation(paintContentColorAnimation(), forKey: "paintContentColorAnimation")
+        CATransaction.commit()
+    }
+    
+    private func circleToEllipseAnimation() -> CABasicAnimation? {
         // path animation
         
-        guard let maxFrame = maxFrame else { return }
+        guard let maxFrame = maxFrame else { return nil }
         let center = CGPoint(x: maxFrame.width / 2, y: maxFrame.height / 2)
         // fromPathを生成
         let fromPath = UIBezierPath()
@@ -114,7 +150,7 @@ final class ViewController: UIViewController {
         let point1 = CGPoint(x: center.x + radius, y: center.y)
         let point2 = CGPoint(x: center.x, y: center.y + radius)
         let point3 = CGPoint(x: center.x - radius, y: center.y)
-
+        
         fromPath.moveToPoint(point0)
         fromPath.addLineToPoint(point0)
         fromPath.addCurveToPoint(point1, controlPoint1: CGPointMake(point0.x + radius / 1.8, point0.y), controlPoint2: CGPointMake(point1.x, point1.y - radius / 1.8))
@@ -131,11 +167,11 @@ final class ViewController: UIViewController {
         // 横名刺の場合
         let cardHeight = meishiView.bounds.height
         let plusFrame = radius - (cardHeight / 2)
-        let origin = CGPoint(x: 0.0, y: plusFrame)
+        let origin = CGPoint(x: 0.0 + borderWidth, y: plusFrame + borderWidth)
         // 横名刺の場合
-//        let cardWidth = meishiView.bounds.width
-//        let plusFrame = radius - (cardWidth / 2)
-//        let origin = CGPoint(x: plusFrame, y: 0.0)
+        //        let cardWidth = meishiView.bounds.width
+        //        let plusFrame = radius - (cardWidth / 2)
+        //        let origin = CGPoint(x: plusFrame, y: 0.0)
         
         let magnification =  radius / 2.5
         
@@ -167,18 +203,30 @@ final class ViewController: UIViewController {
         
         pathAnimation.fromValue = fromPath.CGPath
         pathAnimation.toValue = toPath.CGPath
-        pathAnimation.duration = 1.0
+        pathAnimation.duration = 2.0
         pathAnimation.fillMode = kCAFillModeForwards
         pathAnimation.removedOnCompletion = false
         
+        return pathAnimation
+    }
+    
+    private func paintContentColorAnimation() -> CABasicAnimation {
+        let colorsProperty = "colors"
+        let colorsAnimation = CABasicAnimation(keyPath: colorsProperty)
         
-        // 取引開始
-        CATransaction.begin()
-        CATransaction.setCompletionBlock { }
+        let fromStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 0.0).CGColor
+        let fromEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 0.0).CGColor
+        let toStartColor = UIColor(red: 219 / 255.0, green: 123 / 255.0, blue: 255.0 / 255.0, alpha: 1.0).CGColor
+        let toEndColor = UIColor(red: 0.0 / 255.0, green: 207.0 / 255.0, blue: 221.0 / 255.0, alpha: 1.0).CGColor
+        let fromColors = [fromStartColor, fromEndColor]
+        let toColors = [toStartColor, toEndColor]
+        colorsAnimation.fromValue = fromColors
+        colorsAnimation.toValue = toColors
+        colorsAnimation.duration = 2.0
+        colorsAnimation.removedOnCompletion = false
+        colorsAnimation.fillMode = kCAFillModeForwards
         
-        circleLayer.addAnimation(pathAnimation, forKey: "circleAnimation")
-        // アニメーション開始
-        CATransaction.commit()
+        return colorsAnimation
     }
 }
 
