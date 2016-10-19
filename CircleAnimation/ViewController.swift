@@ -62,7 +62,7 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        view.addSubview(meishiView)
+        view.addSubview(meishiView)
         
         view.layer.addSublayer(videoPreviewLayer)
         videoPreviewLayer.addSublayer(rectanglesLayer)
@@ -136,7 +136,7 @@ final class ViewController: UIViewController {
             CATransaction.begin()
 //            CATransaction.setCompletionBlock(completion)
             if let ellipseToQuadrangleAnimation = self.ellipseToQuadrangleAnimation() {
-                self.borderLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
+//                self.borderLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
                 self.contentLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
             }
             self.contentGradientLayer.addAnimation(self.contentGradientAnimation(), forKey: "clearContentColorAnimation")
