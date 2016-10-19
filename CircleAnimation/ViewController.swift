@@ -12,6 +12,7 @@ final class ViewModel {
     
 }
 private let borderWidth = CGFloat(2.0)
+private let radius = CGFloat(80)
 
 final class ViewController: UIViewController {
     var maxFrame: CGRect?
@@ -52,6 +53,8 @@ final class ViewController: UIViewController {
         let nameCardLayer = CALayer()
         nameCardLayer.contents = UIImage(named: "meisi.jpg")?.CGImage
         nameCardLayer.frame = CGRect(x: self.view.bounds.width / 4, y: self.view.bounds.height / 4, width: 200, height: 120)
+        nameCardLayer.masksToBounds = true
+        nameCardLayer.cornerRadius = radius / 2.5
         return nameCardLayer
     }()
     
@@ -65,7 +68,6 @@ final class ViewController: UIViewController {
         videoPreviewLayer.addSublayer(rectanglesLayer)
         rectanglesLayer.addSublayer(nameCardLayer)
 
-        let radius = CGFloat(80)
         let diameter = radius * 2.0
         var cardMinX = meishiView.frame.minX
         var cardMinY = meishiView.frame.minY
@@ -138,7 +140,7 @@ final class ViewController: UIViewController {
                 self.contentLayer.addAnimation(ellipseToQuadrangleAnimation, forKey: "ellipseToQuadrangleAnimation")
             }
             self.contentGradientLayer.addAnimation(self.contentGradientAnimation(), forKey: "clearContentColorAnimation")
-            self.nameCardLayer.addAnimation(self.scaleAnimation(), forKey: "scaleAnimation")
+            self.nameCardLayer.addAnimation(self.nameCardAnimation(), forKey: "nameCardAnimation")
             CATransaction.commit()
         }
     }
@@ -319,10 +321,8 @@ final class ViewController: UIViewController {
     private func scaleAnimation() -> CABasicAnimation {
         let transform = "transform.scale"
         let scaleAnimation = CABasicAnimation(keyPath: transform)
+        scaleAnimation.fromValue = NSValue(CATransform3D: CATransform3DMakeScale(1.0, 1.0, 1.0))
         scaleAnimation.toValue = NSValue(CATransform3D: CATransform3DMakeScale(1.1, 1.1, 1.0))
-        scaleAnimation.duration = 0.8
-        scaleAnimation.fillMode = kCAFillModeForwards
-        scaleAnimation.removedOnCompletion = false
         
         return scaleAnimation
     }
@@ -352,6 +352,24 @@ final class ViewController: UIViewController {
 
         return contentGradientAnimation
     }
+    
+    private func cornerRadiusAnimation() -> CABasicAnimation {
+        let cornerRadiusProperty = "cornerRadius"
+        let cornerRadiusAnimation = CABasicAnimation(keyPath: cornerRadiusProperty)
+        cornerRadiusAnimation.fromValue = radius / 2.5
+        cornerRadiusAnimation.toValue = 0.0
+        
+        return cornerRadiusAnimation
+    }
+    
+    private func nameCardAnimation() -> CAAnimationGroup {
+        let nameCardAnimation = CAAnimationGroup()
+        nameCardAnimation.animations = [scaleAnimation(), cornerRadiusAnimation()]
+        nameCardAnimation.duration = 0.8
+        nameCardAnimation.fillMode = kCAFillModeForwards
+        nameCardAnimation.removedOnCompletion = false
+        
+        return nameCardAnimation
+    }
 }
 
-// 1.1倍後の座標を取得してそれのpathを変更すればいけそう！
